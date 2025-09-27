@@ -27,3 +27,9 @@ HAS*
 *titanic*
 *world_m*
 *junk*
+DSSK/report_tvuontis/*
+!DSSK/report_tvuontis/tvuontis.pdf
+!DSSK/report_tvuontis/tvuontis.tex
+Stats/week2_bootstrap_template.py
+Stats/week2_heart_disease_data.csv
+Stats/week3_exercise5.txt

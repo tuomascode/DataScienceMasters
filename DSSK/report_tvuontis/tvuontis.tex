@@ -1,0 +1,216 @@
+% !LW recipe=pdflatex
+% !TEX root = tvuontis.tex
+%% This file is modified by Jussi Kangasharju and Pirjo Moen.
+%% Earlier versions were made by Veli Mäkinen
+%% from HY_fysiikka_LuKtemplate.tex authored by Roope Halonen ja
+%% Tomi Vainio. Some text is also inherited from engl_malli.tex by
+%% Kutvonen, Erkiö, Mäkelä, Verkamo, Kurhila, and Nykänen.
+%% 
+%% 
+% STEP 1: Choose oneside or twoside
+\documentclass[english,oneside,openany]{UH_DS_report}
+%finnish,swedish
+%
+%\usepackage[utf8]{inputenc} 
+% For UTF8 support. Use UTF8 when saving your file.
+\usepackage{lmodern} % Font package 
+\usepackage{textcomp} % Package for special symbols 
+\usepackage[pdftex]{color, graphicx} % For pdf output and jpg/png graphics 
+\usepackage[pdftex, plainpages=false]{hyperref} % For hyperlinks and pdf metadata 
+\usepackage{fancyhdr} % For nicer page headers 
+\usepackage{tikz} % For making vector graphics (hard to learn but powerful)
+%\usepackage{wrapfig} % For nice text-wrapping figures (use at own discretion)
+\usepackage{amsmath, amssymb} % For better math
+%\usepackage[square]{natbib} % For bibliography
+\usepackage[footnotesize,bf]{caption} % For more control over figure captions 
+\usepackage{blindtext} 
+\usepackage{titlesec}
+\usepackage[titletoc]{appendix}
+
+\onehalfspacing %line spacing
+%\singlespacing 
+%\doublespacing
+
+%\fussy 
+\sloppy % sloppy and fussy commands can be used to avoid overlong text lines
+
+% STEP 2: 
+% Set up all the information for the title page and the abstract form. 
+% Replace parameters with your information.
+\title{VMBC Report} 
+\author{Tuomas Vuontisjarvi}
+
+\date{\today}
+\keywords{layout, summary, list of references} 
+\depositeplace{}
+\additionalinformation{}
+
+% \classification{\protect{\ \\
+%     \  General and reference $\rightarrow$ Document types $\rightarrow$ Surveys and overviews\  \\
+%     \  Applied computing $\rightarrow$ Document management and text processing $\rightarrow$ Document management $\rightarrow$ Text editing\\
+% }}
+
+% If you want to quote someone special. You can comment this line and
+% there will be nothing on the document.
+%\quoting{Bachelor's degrees make pretty good placemats if you get them
+%laminated.}{Jeph Jacques}
+
+% OPTIONAL STEP: Set up properties and metadata for the pdf file that
+% pdfLaTeX makes. But you don't really need to do this unless you want
+% to.
+\hypersetup{ 
+	%bookmarks=true,         % show bookmarks bar first?
+	unicode=true,           % to show non-Latin characters in Acrobat's bookmarks 
+	pdftoolbar=true,        % show Acrobat's toolbar?
+	pdfmenubar=true,        % show Acrobat's menu? 
+	pdffitwindow=false,		% window fit to page when opened 
+	pdfstartview={FitH},    % fits the width of the page to the window 
+	pdftitle={},            % title
+	pdfauthor={},           % author 
+	pdfsubject={},          % subject of the document 
+	pdfcreator={},          % creator of the document
+	pdfproducer={pdfLaTeX}, % producer of the document
+	pdfkeywords={something} {something else}, % list of keywords for
+	pdfnewwindow=true,      % links in new window 
+	colorlinks=true, 		% false: boxed links; true: colored links 
+	linkcolor=black,        % color of internal links 
+	citecolor=black,        % color of links to bibliography 
+	filecolor=magenta,      % color of file links 
+	urlcolor=cyan			% color of external links
+}
+          
+\begin{document}
+
+% Generate title page.
+\maketitle
+
+% STEP 3: Write your abstract (of course you really do this last). You
+% can make several abstract pages (if you want it in different
+% languages), but you should also then redefine some of the above
+% parameters in the proper language as well, in between the abstract
+% definitions.
+
+\begin{abstract}
+This report is about Variational Bayesian Monte Carlo (VBMC), a method for performing 
+Bayesian inference with complex and computationally expensive black-box models. Key concepts
+related to the VMBC are explained to provide clear understanding of understanding. With those 
+definitions explained, this report will explore the use cases for the algorithm and cases
+were the algorithm is unfit for, or if there are better methods available. Finally the usage
+of the algorithm is explored with the provided pyVMBC python package.
+\end{abstract}
+
+% Place ToC
+\mytableofcontents
+
+\mynomenclature
+
+% ----------------------------------------------------------------------
+% STEP 4: Write the report. Your actual text starts here.
+% You shouldn't mess with the code above the line except to change the
+% parameters. Removing the abstract and ToC commands will mess up stuff.
+
+\chapter{Introduction}
+\label{chapter:intro}
+
+According to Acerbi (2018), a significant problem with probabilistic models that have expensive,
+black-box likelihoods is that the characteristics prevent the usage of standard techniques for 
+Bayesian inference.
+
+In order to address the problem of high computational cost, a novel sample efficient method 
+has been introduced, called Variational Bayesian Monte Carlo (VMBC). 
+Acerbi \cite{acerbi2018} claims that the VMBC solves the previously costly problem by combining 
+variational inference with Bayesian quadrature, solving model posteriors efficiently 
+and with a relatively small amount of sampling.
+
+This report aims to explain the VMBC by exploring the key concepts behind it. 
+Chapter three focuses on explaining all the relevant concepts and providing examples 
+and on the way. The goal is to build a clear picture of the background domain 
+and the issues researchers face.
+
+Chapter four will explore the VMBC in more detail with the advantage 
+of clearly defined concepts. The aim is to explain how it works and 
+what kind of problems it solves. Also the chapter will consider problems that 
+the VMBC is ill suited for.
+
+Chapter five will dive deeper into the workings of the 
+VMBC by using the python package pyVBMC provided by the author in another paper. 
+
+\chapter{Key concepts and VMBC explained}
+\label{chapter:structure}
+\begin{enumerate}
+  \renewcommand{\labelenumi}{\roman{enumi}.}
+  \item Black-box models
+  \item Bayesian inference
+  \item Approximate inference methods
+  \item Model posteriors
+  \item Gaussian process
+  \item Monte Carlo algorithms
+\end{enumerate}
+
+% The language around VMBV can be slightly confusing, mostly due to the 
+% fact that the word model is used a lot and in a few different ways. 
+% There are model posteriors, black-box models, model parameters and model instantiated hypotheses. 
+% In order to avoid confusion around the issue, this report begins by defining key concepts.
+
+The VMBC is used for complex and computationally expensive black-box models. 
+Acerbi \cite{acerbi2018}\cite{acerbi2020}
+notes a few examples of such models, such as computational neuroscience, biology and big data models.
+The algorithm is a novel approximate inference  method for learning about black-box models. A model is black-box model when there is no access to its inner processes. This means that the 
+model can be viewed completely in terms of its inputs and outputs. 
+
+One way of learning about the model is Bayesian inference, which is a method for computing posterior distribution
+over parameters and the model evidence. However, since Bayesian inference is 
+generally analytically intractable \cite{acerbi2018}, statistical approximate inference methods 
+are often used. These methods include Markov Chain Monte Carlo algorithms and variational inference.
+
+As Acerbi \cite{acerbi2018} notes, existing methods of approximate inference, 
+such as above examples, generally require knowledge about the 
+model in order to produce approximate inference. When a method requires more knowledge about the model
+than just inputs and outputs, by definition it can't be applied to black-box models. Some methods
+can bypass this requirement when given a very large number of model evaluations.
+
+A computationally expensive black-box model is a model where evaluating the model is time consuming, 
+which means that there generally isn't access to large number of model evaluations. Therefore the existing methods for approximate Bayesian inference are unfit for 
+computationally expensive black-box models. Expensive model is defined as one evaluation taking 
+one second or more per evaluation\cite{pyvmbc}
+
+From the point of view of the pyVBMC, a python package for performing VMBC model 
+and posterior inference, the black-box model is provided as Python function, 
+which calculates target log likelihood of the black-box model.
+
+The VMBC produces a flexible approximate posterior distribution of the model parameters 
+\cite{acerbi2018}. The posterior distribution is a joint probability distribution which describes 
+how plausible each parameter is given the observed data. The posterior is expressed as $p(x \mid \mathcal{D})$,
+where $\mathcal{D}$ is the dataset or the evidence and $x \in \mathbb{R}^D$, 
+which are the black-box model parameters.
+
+The black-box model for the algorithm is expressed as $p(\mathcal{D} \mid x)$. This means that the 
+input for the algorithm is a likelihood function which provides the log-likelihood for seeing the 
+evidence with the given priors.
+
+
+\chapter{VMBC use cases and fallouts}
+\label{chapter:layout}
+
+\chapter{pyVMBC examples}
+\label{chapter:layout}
+
+\chapter{Conclusions}
+\label{chapter:conclusions}
+
+
+% STEP 5: Uncomment the following lines and set your .bib file and
+% desired bibliography style to make a bibliography with BibTeX.
+% Alternatively you can use the thebibliography environment if you want
+% to add all references by hand.
+% 
+\cleardoublepage %fixes the position of bibliography in bookmarks
+\phantomsection
+
+\renewcommand\bibname{References}
+\addcontentsline{toc}{chapter}{\bibname} % This lines adds the bibliography to the ToC 
+\bibliographystyle{abbrv} % numbering alphabetic order 
+\bibliography{UH_DS_references}
+
+
+\end{document}
