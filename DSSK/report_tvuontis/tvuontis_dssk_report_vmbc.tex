@@ -42,7 +42,7 @@
 \author{Tuomas Vuontisjarvi}
 
 \date{\today}
-\keywords{layout, summary, list of references} 
+\keywords{} 
 \depositeplace{}
 \additionalinformation{}
 
@@ -112,7 +112,7 @@ VMBC even further.
 \chapter{Introduction}
 \label{chapter:intro}
 
-According to Acerbi (2018), a significant problem with probabilistic models that have expensive,
+According to Acerbi\cite{acerbi2018}, a significant problem with probabilistic models that have expensive,
 black-box likelihoods is that the characteristics prevent the usage of standard techniques for 
 Bayesian inference.
 
@@ -123,10 +123,9 @@ variational inference with Bayesian quadrature, solving model posteriors efficie
 and with a relatively small amount of sampling\cite{acerbi2018}.
 
 This report aims to explain the VMBC by exploring the key concepts behind it. 
-Chapter three focuses on explaining all the relevant concepts and providing examples 
-and on the way. The goal is to build a clear picture of the mathematical notions involved with the algorithm.
-
-Chapter four will dive deeper into the workings of the VMBC
+Chapter two focuses on explaining all the relevant concepts and providing examples 
+and on the way. The goal is to build a clear picture of the mathematical notions involved with the algorithm. 
+Chapter three will dive deeper into the workings of the VMBC
 by using the python package pyVBMC provided by the author. 
 
 
@@ -146,68 +145,78 @@ by using the python package pyVBMC provided by the author.
 The VMBC is used for complex and computationally expensive black-box models. 
 Acerbi notes a few examples of such models, such as computational neuroscience, biology and 
 big data models\cite{acerbi2018}\cite{acerbi2020}.
-The algorithm is a novel approximate inference  method for learning about black-box models. A model is black-box model when there is no access to its inner processes. This means that the 
-model can be viewed completely in terms of its inputs and outputs. 
+The VMBC algorithm is a novel approximate inference  method for investigating such black-box models. 
 
-One way of learning about the model is Bayesian inference, which is a method for computing posterior distribution
-over parameters and the model evidence. However, since Bayesian inference is 
-generally analytically intractable\cite{acerbi2018}, statistical approximate inference methods 
-are often used. These methods include Markov Chain Monte Carlo algorithms and variational inference.
+A model is a computationally expensive black-box model when there is no access to its inner processes - 
+it can be viewed completely in terms of its inputs and outputs - and the evaluation of the model is time consuming, one second or 
+more per evaluation\cite{pyvmbc}. 
 
-As Acerbi notes, existing methods of approximate inference, 
-such as above examples, generally require knowledge about the 
-model in order to produce approximate inference\cite{acerbi2018}. When a method requires more knowledge about the model
-than just inputs and outputs, by definition it can't be applied to black-box models. Some methods
-can bypass this requirement when given a very large number of model evaluations.
+One way of learning about models is Bayesian inference, 
+which is a method for computing posterior distribution
+over parameters and the model evidence. However, since Bayesian inference is generally analytically intractable,
+statistical approximate inference methods are often used.\cite{acerbi2018}
 
-A computationally expensive black-box model is a model where evaluating the model is time consuming, 
-which means that there generally isn't access to large number of model evaluations. Therefore the existing methods for approximate Bayesian inference are unfit for 
-computationally expensive black-box models. Expensive model is defined as one evaluation taking 
-one second or more per evaluation\cite{pyvmbc}
+Inference methods include Markov Chain Monte Carlo algorithms and variational inference. As Acerbi notes, such methods 
+generally require knowledge about the model processes or a significant number of evaluations\cite{acerbi2018}. 
+Since neither of those are available for expensive black-box models, the existing methods are unfit for the inference.
+This is exactly the problem that VMBC aims to solve.
 
 The VMBC produces a flexible approximate posterior distribution of the model parameters 
-\cite{acerbi2018}. The posterior distribution is a joint probability distribution which describes 
-how plausible each parameter is given the observed data. The posterior is expressed as $p(x \mid \mathcal{D})$,
-where $\mathcal{D}$ is the dataset or the evidence and vector $x \in \mathbb{R}^D$ of the black-box model parameters.
+\cite{pyvmbc}. The posterior distribution is a joint probability distribution which describes 
+how plausible each parameter is given the observed data.
 
+The complete operation of the VMBC can be viewed in terms of the following formula:
 
-The black-box model for the algorithm is expressed as $p(\mathcal{D} \mid x)$\cite{acerbi2018}.
-From the point of view of the pyVBMC, a python package for performing VMBC model 
-and posterior inference, the black-box model is provided as Python function, 
-which calculates target log likelihood of the black-box model\cite{pyvmbc}. This means 
-that from user point of view, the black-box model takes in a parameter vector representing the estimation
-for the model parameters and calculates the likelihood of the data with the given parameters $\log p(\mathcal{D} \mid x)p(x)$.
+$$p(x\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid x)p(x)}{p(\mathcal{D})}$$
 
-A simple example of such log likelihood function could be a two value vector and a dataset of normally
-distributed values with some specific mean and variance. 
-The function then would solve the log likelihood of seeing that particular dataset with the proposed parameters,
-which would stand for mean and variance.
+The posterior distribution is expressed as $p(x \mid \mathcal{D})$, where $\mathcal{D}$ 
+is the dataset or the evidence and vector $x \in \mathbb{R}^D$ describes the black-box model parameters.
 
-The VMBC algorithm also computes the marginal likelihood, expressed as $p(\mathcal{D})$\cite{acerbi2018}. 
+The VMBC is an iterative algorithm. Each iteration of the algorithm consists roughly of the following steps.
+
+\begin{enumerate}
+
+\item[1.] 
+Sample sequentially a batch of points, which maximize a given acquisition function and evaluates the log joint $f$ for each of them
+\item[2.] Train a GP-model
+\item[3.] Update the posterior approximation, optimizing ELBO
+\end{enumerate}
+
+The log joint $f$ refers to the numerator of the VMBC formula: $p(\mathcal{D}\mid x)p(x)$, where $p(\mathcal{D}\mid x)$
+is the expensive black-box model. From the user point-of-view, the black-box models is provided as a function, which 
+computes the log-likelihood of the sample points.
+
+For example, the log-likelihood function could simply be the distance from origon inverted in 2-D space.
+The further the given sample point is from the origon, the less likely it would be. The loglikelihood function $g$ then would would be just:
+
+$$
+g(x,y) = \log \frac{1}{x^2 + y^2}
+$$
+
+The log joint $f$ includes also the prior over the paramaters $p(x)$, which is given as log function for the pyVMBC. 
+Since both likelihood and prior are given as log, the pyVMBC uses their sum, which the user needs to provide as the log-joint
+function as input parameter for the algorithm. 
+
+$$f_{joint}(x) = \log(p(\mathcal{D}\mid x)p(x)) = \log (p(\mathcal{D}\mid x)) + \log(p(x))$$
+
+The algorithm also has to compute the marginal likelihood $p(\mathcal{D})$ in order to solve the posterior.
 Fong and Holmes define marginal likelihood as a measure of 
-model fit\cite{holmes}. They also note that when the model is correctly specified, 
-the marginal likelihood provides a method for computing the posterior probability of the model
-with the given data $\mathcal{D}$. Acerbi also calls marginal likelihood the model evidence\cite{acerbi2018}.
-
-By definition it is the integral over the paramater space:
+model fit\cite{holmes} and Acerbi also refers to it as the model evidence\cite{acerbi2018}. 
+The marginal likelihood is the integral over the
+parameter space:
 
 $$
 p(\mathcal{D})=\int p(\mathcal{D}\mid x)p(x)dx
 $$
 
-Marginal likelihood is therefore a function, which means that is a mathematical 
-description of the likelihoods over the whole paramater space. The VMBC algorithm uses 
-marginal likelihood in the computation of the approximate posterior distribution\cite{acerbi2018}: 
+Marginal likelihood is therefore a function, which means that it is a mathematical 
+description of the likelihoods over the whole paramater space.
 
-$$p(x\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid x)p(x)}{p(\mathcal{D})}$$
-
-Thus, the computation of the algorithm has two components. Computing the marginal likelihood function and the 
-approximate posterior distribution. $p(\mathcal{D}\mid x)$ is the likelihood of the model of interest and $p(x)$
-is the prior over parameters.\cite{acerbi2018}
-
-With the computational constraints, Acerbi suggests building a probabilistic model-based
-approximation of the function of interest and propose Gaussian process for the build
-process\cite{acerbi2018}.
+Solving the marginal likelihood problem has two components. First is to somehow learn about the function itself.
+Since the model in question is a black-box model, there is no way to directly learn about the model fit.
+The second problem is the integral part. Even if there was complete knowledge about the underlying function, there is
+no guarantee that the integral is analytically tractable. Therefore, the VMBC combines Bayesian quadrature with Gaussian process to
+estimate the marginal likelihood.
 
 According to Williams and Rasmussen, a Gaussian process is a generilaziation of the Gaussian
 probability distribution\cite{gaussian}. They use the example of classifying handwritten symbols and 
@@ -227,18 +236,9 @@ gives the same answer for a finite number of points, whether you ignore all
 the infinite number of other points or not. And answers with different finite sets are 
 consistent with each other.\cite{gaussian}
 
-As example Williams and Rasmussen give a set of smooth curve functions with a lot of variation, where 
-smoothness of a function is considered a prior. As
-$x,y$ points are given and a requirement for a function to intersect with those points, a posterior distribution
-of functions can be produced. The posterior functions still vary, but they all intersect in the given points.
-Intuitively this means that each data point restricts the number of functions, because all the functions
-that do not intersect given data points are concidered less likely. If different points are given, we have 
-a different probability distribution for the functions, but the probable functions still include functions for
-all other data points.\cite{gaussian}
-
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.75\textwidth]{plots.png}
+    \includegraphics[width=0.9\textwidth]{plots.png}
     \caption{Smooth curves representing}
     \label{Fig:gp-curves}
 \end{figure}
@@ -251,32 +251,19 @@ gives consistent answers for different data - the set of possible curves gets re
 considered sets of data include the curves consistent with other sets of data. In actuality the GP doesn't 
 deal with any particular function but a probability distribution of functions.
 
-The VMBC uses Gaussian process based Bayesian quadrature to estimate the marginal likelihood\cite{acerbi2018}. 
-According to Osborne \textit{et al.}, Bayesian quadrature provides a method for numerical integration with sample
-efficiency. The method relies on a distribution of likelihood functions and a number of samples to provide
-inferences about the distribution\cite{bayesian_quadrature}. The quadrature evaluates $f(x)$ at vector sample
-points and performs analytic Gaussian process to infer about the value of the integral. In the VMBC, the 
-quadrature provides mean and variance of the integral\cite{acerbi2018}.
-The point of Bayesian quadrature then is to provide increasingly more accurate mean and variance of the
-marginal likelihood, which was the integral: $p(\mathcal{D})=\int p(\mathcal{D}\mid x)p(x)dx$.
+The VMBC algorithm uses GP-based Bayesian quadrature to solve the marginal likelihood. The GP-model provides a prior for the possible
+functions and the Bayesian quadrature or Bayesian Monte Carlo is used for active sampling\cite{acerbi2018}. According to Rasmussen and Ghahramani, Bayesian Monte Carlo
+starts with a prior over some function and makes inferences about it from a set of samples \cite{bayesian_mc}. 
 
-The VMBC algorithm is iterative and continues until a given budget of evaluations is depleted or when 
-some termination criteria is reached. First step of the algorithm finds a set of samples that maximize given 
-acquisition function, which are meant to guide optimal sampling. These sample points are then fed to the
-given log likelihood function provided by the user\cite{acerbi2018}. In other words, VMBC produces excellent guesses for the $x$ in 
-$p(\mathcal{D} \mid x)p(x)$ and then evaluates each guess for the black-box model.
-
-Second step is to train a GP model based on the first step evaluations\cite{acerbi2018}. Here GP-based Bayesian quadrature 
-is used to estimate the marginal likelihood: $p(\mathcal{D})=\int p(\mathcal{D}\mid x)p(x)dx$.
-Third step is to update variational posterior approximation by optimizing the 
-lower evidence bound\cite{acerbi2018}. In mathematical terms, this equates to solving the posterior
-formula: $p(x\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid x)p(x)}{p(\mathcal{D})}$, which is then used to guide 
-the next iteration active sampling.
+The Bayesian quadrature used by the VMBC differs from standard simple methods by the sampling method. The sampling minimizes the
+KL divergence and variance of the final estimate of ELBO or the evidence lowerbound. 
+The minimizing is done by the acquisition function, which aims to 
+minimize the uncertainty for the current posterior and for potential locations of future posteriors.\cite{acerbi2018}
 
 \chapter{pyVMBC examples}
 \label{chapter:layout}
 
-TODO
+The aim of this chapter is to provide a comprehensive yet simple usage example of the pyVMBC package. Using this
 
 \chapter{Conclusions}
 \label{chapter:conclusions}
